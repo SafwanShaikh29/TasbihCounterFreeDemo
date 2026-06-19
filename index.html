@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TasbihCountFree</title>
+    <style>
+        /* Dark Theme Background */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            background-color: #121212; 
+            color: #ffffff;
+            user-select: none; 
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #4caf50;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        /* New Sleek Target Toggle Button */
+        #target-toggle {
+            background-color: #1e1e1e;
+            color: #4caf50;
+            border: 1px solid #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #target-toggle:active {
+            transform: scale(0.95);
+        }
+
+        /* Number Display */
+        #counter-display { 
+            font-size: 6.5rem; 
+            font-weight: bold; 
+            color: #ffffff;
+            letter-spacing: -2px;
+            margin-bottom: 10px;
+            z-index: 10;
+        }
+
+        /* Container for Button and Progress Ring */
+        .tap-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 320px;
+            height: 320px;
+            margin-bottom: 20px;
+        }
+
+        /* SVG Progress Ring */
+        .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(-90deg); /* Starts the ring at the top (12 o'clock) */
+            pointer-events: none;
+        }
+
+        .progress-ring__bg {
+            stroke: #1e1e1e;
+        }
+
+        .progress-ring__value {
+            stroke: #4caf50;
+            transition: stroke-dashoffset 0.2s ease-out;
+            stroke-linecap: round;
+        }
+
+        /* Massive Tap Button */
+        #tap-btn { 
+            background-color: #1a1a1a; 
+            color: #aaaaaa; 
+            font-size: 2rem;
+            width: 270px; 
+            height: 270px; 
+            border: none;
+            border-radius: 50%; 
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.5); 
+            cursor: pointer; 
+            transition: transform 0.05s, background-color 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            z-index: 2;
+        }
+
+        #tap-btn:active { 
+            transform: scale(0.96); 
+            background-color: #222222;
+        }
+
+        /* ANIMATIONS */
+        @keyframes ring-pulse {
+            0% { transform: rotate(-90deg) scale(1); stroke-width: 8; opacity: 1; }
+            50% { transform: rotate(-90deg) scale(1.05); stroke-width: 12; stroke: #81c784; opacity: 0.8; }
+            100% { transform: rotate(-90deg) scale(1); stroke-width: 8; opacity: 1; }
+        }
+
+        @keyframes text-pop {
+            0% { transform: scale(1); color: #ffffff; }
+            50% { transform: scale(1.15); color: #4caf50; }
+            100% { transform: scale(1); color: #ffffff; }
+        }
+
+        .anim-ring {
+            animation: ring-pulse 0.4s ease-out;
+        }
+
+        .anim-text {
+            animation: text-pop 0.4s ease-out;
+        }
+
+        /* Controls Row */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .control-btn {
+            background-color: #1e1e1e;
+            color: #aaaaaa;
+            border: 1px solid #333;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .control-btn:hover { background-color: #333; color: white; }
+        .control-btn.active {
+            background-color: #4caf50;
+            color: #121212;
+            border-color: #4caf50;
+            font-weight: bold;
+        }
+        #reset-btn {
+            background-color: rgba(211, 47, 47, 0.15);
+            color: #ff5252;
+            border-color: #ff5252;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>TasbihCountFree</h1>
+        
+        <!-- Animated Number Display -->
+        <div id="counter-display">0</div>
+
+        <!-- Sleek Target Toggle instead of dropdown -->
+        <button id="target-toggle" onclick="cycleTarget()">🎯 Target: 33</button>
+
+        <div class="tap-container">
+            <!-- Circular Progress Ring -->
+            <svg class="progress-ring" width="320" height="320">
+                <circle class="progress-ring__bg" stroke-width="8" fill="transparent" r="150" cx="160" cy="160"/>
+                <circle class="progress-ring__value" stroke-width="8" fill="transparent" r="150" cx="160" cy="160"/>
+            </svg>
+            
+            <button id="tap-btn" onclick="incrementCounter()">TAP</button>
+        </div>
+
+        <div class="controls">
+            <button id="vibrate-btn" class="control-btn active" onclick="toggleVibration()">Vibrate: ON</button>
+            <button id="sound-btn" class="control-btn" onclick="toggleSound()">Sound: OFF</button>
+            <button id="reset-btn" class="control-btn" onclick="resetCounter()">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let count = parseInt(localStorage.getItem('tasbihCount')) || 0;
+        let vibrationEnabled = true;
+        let soundEnabled = false;
+        
+        // Target Cycling Logic
+        const targetOptions = [33, 99, 100, 1000, "Infinity"];
+        let currentTargetIndex = parseInt(localStorage.getItem('tasbihTargetIndex')) || 0;
+
+        const display = document.getElementById('counter-display');
+        const targetToggleBtn = document.getElementById('target-toggle');
+        
+        // SVG Ring Setup
+        const circle = document.querySelector('.progress-ring__value');
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = circumference;
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        // Initialize App
+        function init() {
+            display.innerText = count;
+            updateTargetUI();
+            updateProgressRing();
+        }
+
+        // --- Core Functions ---
+        function incrementCounter() {
+            count++;
+            display.innerText = count;
+            localStorage.setItem('tasbihCount', count); 
+
+            updateProgressRing();
+            playFeedback();
+        }
+
+        function resetCounter() {
+            if (confirm("Reset counter to 0?")) {
+                count = 0;
+                display.innerText = count;
+                localStorage.setItem('tasbihCount', count);
+                updateProgressRing();
+            }
+        }
+
+        // --- Target & Animation Logic ---
+        function cycleTarget() {
+            currentTargetIndex = (currentTargetIndex + 1) % targetOptions.length;
+            localStorage.setItem('tasbihTargetIndex', currentTargetIndex);
+            updateTargetUI();
+            updateProgressRing();
+        }
+
+        function updateTargetUI() {
+            const target = targetOptions[currentTargetIndex];
+            if (target === "Infinity") {
+                targetToggleBtn.innerText = "🎯 Free Count";
+            } else {
+                targetToggleBtn.innerText = `🎯 Target: ${target}`;
+            }
+        }
+
+        function updateProgressRing() {
+            const target = targetOptions[currentTargetIndex];
+            let percent = 0;
+
+            if (target === "Infinity" || count === 0) {
+                percent = 0; // Keep ring empty for free count or zero
+            } else {
+                let currentCycleCount = count % target;
+                if (currentCycleCount === 0 && count > 0) {
+                    percent = 100; // Fill ring completely when target reached
+                    triggerAnimations(); // Trigger the pop effect!
+                } else {
+                    percent = (currentCycleCount / target) * 100;
+                }
+            }
+
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function triggerAnimations() {
+            // Remove animation classes to allow re-triggering
+            circle.classList.remove('anim-ring');
+            display.classList.remove('anim-text');
+            
+            // Trigger reflow (forces browser to restart the animation)
+            void circle.offsetWidth;
+            void display.offsetWidth;
+            
+            // Re-add classes
+            circle.classList.add('anim-ring');
+            display.classList.add('anim-text');
+
+            // Double vibration for target reach
+            if(vibrationEnabled && navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+        }
+
+        // --- Feedback Functions ---
+        function playFeedback() {
+            if (vibrationEnabled && navigator.vibrate) {
+                navigator.vibrate(40); 
+            }
+
+            if (soundEnabled) {
+                if (!audioCtx) audioCtx = new AudioContext();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime); 
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.05);
+            }
+        }
+
+        // --- Toggles ---
+        function toggleVibration() {
+            vibrationEnabled = !vibrationEnabled;
+            const btn = document.getElementById('vibrate-btn');
+            btn.innerText = `Vibrate: ${vibrationEnabled ? 'ON' : 'OFF'}`;
+            btn.classList.toggle('active', vibrationEnabled);
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-btn');
+            btn.innerText = `Sound: ${soundEnabled ? 'ON' : 'OFF'}`;
+            btn.classList.toggle('active', soundEnabled);
+            if(soundEnabled && !audioCtx) audioCtx = new AudioContext();
+        }
+
+        init();
+    </script>
+</body>
+</html>
